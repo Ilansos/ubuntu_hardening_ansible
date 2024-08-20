@@ -1,0 +1,153 @@
+---
+- name: Ensure nodev,nosuid,noexec options are set on partitions
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure nodev,nosuid,noexec options are set on partitions
+      vars:
+        partitions:
+          - { mount_point: "/tmp" }
+          - { mount_point: "/var/tmp" }
+          - { mount_point: "/home" }
+          - { mount_point: "/var/log/audit" }
+          - { mount_point: "/var/log" }
+          - { mount_point: "/dev/shm" }
+      block:
+        - name: Find the partition
+          command: "findmnt -n -o SOURCE -T {{ item.mount_point }}"
+          register: partition_source
+          failed_when: partition_source.rc != 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+
+        - name: Find the filesystem type of the partition
+          command: "findmnt -n -o FSTYPE -T {{ item.mount_point }}"
+          register: partition_fstype
+          failed_when: partition_fstype.rc != 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+
+        - name: Ensure {{ item.mount_point }} has nodev,nosuid,noexec options in /etc/fstab
+          lineinfile:
+            path: /etc/fstab
+            regexp: '^{{ partition_source.results[item_index].stdout }}\\s+{{ item.mount_point }}\\s+'
+            line: '{{ partition_source.results[item_index].stdout }} {{ item.mount_point }} {{ partition_fstype.results[item_index].stdout }} defaults,nodev,nosuid,noexec 0 0'
+            state: present
+            backup: yes
+          when: partition_source.results[item_index].rc == 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+            index_var: item_index
+
+        - name: Remount {{ item.mount_point }} with nodev,nosuid,noexec options
+          mount:
+            path: "{{ item.mount_point }}"
+            src: "{{ partition_source.results[item_index].stdout }}"
+            fstype: "{{ partition_fstype.results[item_index].stdout }}"
+            opts: defaults,nodev,nosuid,noexec
+            state: mounted
+          when: partition_source.results[item_index].rc == 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+            index_var: item_index
+
+    - name: Ensure nodev,nosuid options are set on /var partition
+      vars:
+        partitions:
+          - { mount_point: "/var" }
+      block:
+        - name: Find the partition
+          command: "findmnt -n -o SOURCE -T {{ item.mount_point }}"
+          register: partition_source
+          failed_when: partition_source.rc != 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+
+        - name: Find the filesystem type of the partition
+          command: "findmnt -n -o FSTYPE -T {{ item.mount_point }}"
+          register: partition_fstype
+          failed_when: partition_fstype.rc != 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+
+        - name: Ensure {{ item.mount_point }} has nodev,nosuid options in /etc/fstab
+          lineinfile:
+            path: /etc/fstab
+            regexp: '^{{ partition_source.results[item_index].stdout }}\\s+{{ item.mount_point }}\\s+'
+            line: '{{ partition_source.results[item_index].stdout }} {{ item.mount_point }} {{ partition_fstype.results[item_index].stdout }} defaults,nodev,nosuid 0 0'
+            state: present
+            backup: yes
+          when: partition_source.results[item_index].rc == 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+            index_var: item_index
+
+        - name: Remount {{ item.mount_point }} with nodev,nosuid options
+          mount:
+            path: "{{ item.mount_point }}"
+            src: "{{ partition_source.results[item_index].stdout }}"
+            fstype: "{{ partition_fstype.results[item_index].stdout }}"
+            opts: defaults,nodev,nosuid
+            state: mounted
+          when: partition_source.results[item_index].rc == 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+            index_var: item_index
+
+    - name: Ensure nodev,nosuid,noexec options are set on "/dev/shm" partition
+      vars:
+        partitions:
+          - { mount_point: "/dev/shm" }
+      block:
+        - name: Find the partition
+          command: "findmnt -n -o SOURCE -T {{ item.mount_point }}"
+          register: partition_source
+          failed_when: partition_source.rc != 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+
+        - name: Find the filesystem type of the partition
+          command: "findmnt -n -o FSTYPE -T {{ item.mount_point }}"
+          register: partition_fstype
+          failed_when: partition_fstype.rc != 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+
+        - name: Ensure {{ item.mount_point }} has nodev,nosuid,noexec options in /etc/fstab
+          lineinfile:
+            path: /etc/fstab
+            regexp: '^{{ partition_source.results[item_index].stdout }}\\s+{{ item.mount_point }}\\s+'
+            line: '{{ partition_source.results[item_index].stdout }} {{ item.mount_point }} {{ partition_fstype.results[item_index].stdout }} defaults,nodev,nosuid,noexec 0 0'
+            state: present
+            backup: yes
+          when: partition_source.results[item_index].rc == 0
+          loop: "{{ partitions }}"
+          loop_control:
+            loop_var: item
+            index_var: item_index
+    - name: Remount /dev/shm
+      shell: mount -o remount /dev/shm
+        
+        # - name: Remount {{ item.mount_point }} with nodev,nosuid,noexec options
+        #   mount:
+        #     path: "{{ item.mount_point }}"
+        #     src: "{{ partition_source.results[item_index].stdout }}"
+        #     fstype: "{{ partition_fstype.results[item_index].stdout }}"
+        #     opts: defaults,nodev,nosuid,noexec
+        #     state: mounted
+        #   when: partition_source.results[item_index].rc == 0
+        #   loop: "{{ partitions }}"
+        #   loop_control:
+        #     loop_var: item
+        #     index_var: item_index
