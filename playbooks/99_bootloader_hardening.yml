@@ -52,9 +52,9 @@
         cmd: update-grub
         warn: no
 
-    # - name: Update GRUB
-    #   command: update-grub
-    #   notify: reboot_server
+    - name: Update GRUB
+      command: update-grub
+      notify: reboot_server
 
   handlers:
     - name: reboot_server
