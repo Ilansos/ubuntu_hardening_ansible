@@ -1,0 +1,39 @@
+---
+- name: Install and remove packages
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - aide # AIDE takes a snapshot of filesystem state including modification times, permissions, and file hashes which can then be used to compare against the current state of the filesystem to detect modifications to the system.
+          - aide-common # Component of AIDE
+          - apparmor # AppArmor provides Mandatory Access Controls
+          - auditd # auditd is the userspace component to the Linux Auditing System. It's responsible for writing audit records to the disk.
+          - audispd-plugins # Component of auditd
+        state: latest
+
+    - name: Ensure packages not installed or remove the ones installed
+      apt:
+        name:
+          - gdm3 # Remove graphical interface if its not required
+          - xserver-xorg # Unless your organization specifically requires graphical login access via X Windows, remove it to reduce the potential attack surface.
+          - avahi-daemon # Automatic discovery of network services is not normally required for system functionality. It is recommended to remove this package to reduce the potential attack surface.
+          - cups # If the system does not need to print jobs or accept print jobs from other systems, it is recommended that CUPS be removed to reduce the potential attack surface
+          - isc-dhcp-server # If the server does not need to be a DHCP server it is recommended to remove it.
+          - slapd # If the system will not need to act as an LDAP server, it is recommended that the software be removed to reduce the potential attack surface.
+          - nfs-kernel-server # If the system does not export NFS shares or act as an NFS client, it is recommended that these services be removed to reduce the remote attack surface.
+          - bind9 # Unless a system is specifically designated to act as a DNS server, it is recommended that the package be deleted to reduce the potential attack surface.
+          - vsftpd # FTP does not protect the confidentiality of data or authentication credentials. It is recommended SFTP be used if file transfer is required.
+          - dovecot-imapd # Unless POP3 and/or IMAP servers are to be provided by this system, it is recommended that the package be removed to reduce the potential attack surface.
+          - dovecot-pop3d # Unless POP3 and/or IMAP servers are to be provided by this system, it is recommended that the package be removed to reduce the potential attack surface.
+          - samba # If there is no need to mount directories and file systems to Windows systems, then this service should be deleted to reduce the potential attack surface.
+          - snmp # The SNMP server can communicate using SNMPv1, which transmits data in the clear and does not require authentication to execute commands.
+          - nis # The NIS service is inherently an insecure system that has been vulnerable to DOS attacks, buffer overflows and has poor authentication for querying NIS maps
+          - rsync # The rsync service presents a security risk as it uses unencrypted protocols for communication. 
+          - rsh-client # These legacy clients contain numerous security exposures and have been replaced with the more secure SSH package.
+          - talk # The software presents a security risk as it uses unencrypted protocols for communication.
+          - telnet # The telnet protocol is insecure and unencrypted. The use of an unencrypted transmission medium could allow an unauthorized user to steal credentials
+        state: absent
+        purge: yes
