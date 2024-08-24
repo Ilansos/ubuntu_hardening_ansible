@@ -3,10 +3,6 @@
   hosts: all
   become: yes
 
-  # vars:
-  #   grub_password: "{{ lookup('env', 'GRUB_PASSWORD') }}"
-  #   grub_user: "{{ lookup('env', 'GRUB_USERNAME') }}"
-
   tasks:
     - name: Generate GRUB password hash
       expect:
