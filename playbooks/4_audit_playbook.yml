@@ -1,0 +1,62 @@
+---
+- name: Configure auditd rules
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Ensure changes to system administration scope (sudoers) are collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-w /etc/sudoers -p wa -k scope -w /etc/sudoers.d -p wa -k scope'
+
+    - name: Ensure actions as another user are always logged
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-a always,exit -F arch=b64 -C euid!=uid -F auid!=unset -S execve -k user_emulation -a always,exit -F arch=b32 -C euid!=uid -F auid!=unset -S execve -k user_emulation'
+
+    - name: Ensure events that modify date and time information are collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: >
+          -a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time-change -a always,exit -F arch=b32 -S adjtimex,settimeofday,clock_settime -k time-change -w /etc/localtime -p wa -k time-change
+
+    - name: Ensure events that modify the system's network environment are collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-a always,exit -F arch=b64 -S sethostname -S setdomainname -k network-modification'
+
+    - name: Ensure events that modify user/group information are collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-w /etc/group -p wa -k identity'
+
+    - name: Ensure session initiation information is collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-w /var/run/utmp -p wa -k session'
+
+    - name: Ensure only authorized groups are assigned ownership of audit log files
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-w /var/log/audit/ -p wa -k audit-logs'
+
+    - name: Ensure login and logout events are collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-w /var/log/wtmp -p wa -k logins'
+
+    - name: Ensure events that modify the system's Mandatory Access Controls are collected
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-w /etc/selinux/ -p wa -k MAC-policy'
+
+    - name: Ensure the audit configuration is immutable
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: '-e 2'
+        state: present
+
+    - name: Restart auditd to apply changes
+      service:
+        name: auditd
+        state: restarted

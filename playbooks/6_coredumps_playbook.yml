@@ -1,0 +1,47 @@
+---
+- name: Restrict core dumps
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Ensure core dumps are restricted in /etc/security/limits.conf
+      lineinfile:
+        path: /etc/security/limits.conf
+        state: present
+        line: '* hard core 0'
+        create: yes
+
+    - name: Ensure fs.suid_dumpable is set to 0 in /etc/sysctl.conf
+      lineinfile:
+        path: /etc/sysctl.conf
+        state: present
+        line: 'fs.suid_dumpable = 0'
+        create: yes
+
+    - name: Apply the kernel parameter for fs.suid_dumpable
+      command: sysctl -w fs.suid_dumpable=0
+
+    - name: Check if systemd-coredump is installed
+      package_facts:
+      
+    - name: Restrict core dumps via systemd-coredump if installed
+      when: "'systemd-coredump' in ansible_facts.packages"
+      block:
+        - name: Ensure Storage=none in /etc/systemd/coredump.conf
+          lineinfile:
+            path: /etc/systemd/coredump.conf
+            state: present
+            regexp: '^Storage='
+            line: 'Storage=none'
+            create: yes
+
+        - name: Ensure ProcessSizeMax=0 in /etc/systemd/coredump.conf
+          lineinfile:
+            path: /etc/systemd/coredump.conf
+            state: present
+            regexp: '^ProcessSizeMax='
+            line: 'ProcessSizeMax=0'
+            create: yes
+
+        - name: Reload systemd daemon
+          command: systemctl daemon-reload

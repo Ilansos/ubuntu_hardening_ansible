@@ -9,7 +9,6 @@
         partitions:
           - { mount_point: "/tmp" }
           - { mount_point: "/var/tmp" }
-          - { mount_point: "/home" }
           - { mount_point: "/var/log/audit" }
           - { mount_point: "/var/log" }
           - { mount_point: "/dev/shm" }
@@ -60,6 +59,7 @@
       vars:
         partitions:
           - { mount_point: "/var" }
+          - { mount_point: "/home" }
       block:
         - name: Find the partition
           command: "findmnt -n -o SOURCE -T {{ item.mount_point }}"

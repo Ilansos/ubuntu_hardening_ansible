@@ -1,0 +1,45 @@
+---
+- name: Secure SSH server configuration
+  hosts: all
+  become: true
+  tasks:
+    - name: Comment out 'Include /etc/ssh/sshd_config.d/*.conf' if present
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^Include /etc/ssh/sshd_config.d/\*\.conf'
+        replace: '# Include /etc/ssh/sshd_config.d/*.conf'
+
+    - name: Ensure SSH configuration is set
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '^{{ item.key }}'
+        line: '{{ item.key }} {{ item.value }}'
+      with_items:
+        - { key: 'LoginGraceTime', value: '60' }
+        - { key: 'PermitRootLogin', value: 'no' }
+        - { key: 'MaxAuthTries', value: '4' }
+        - { key: 'MaxSessions', value: '2' }
+        - { key: 'PasswordAuthentication', value: 'no' }
+        - { key: 'Protocol', value: '2' }
+        - { key: 'DenyUsers', value: 'root' }
+        - { key: 'X11Forwarding', value: 'no' }
+        - { key: 'MACs', value: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256' }
+        - { key: 'AllowTcpForwarding', value: 'no' }
+        - { key: 'Banner', value: '/etc/issue.net' }
+        - { key: 'MaxStartups', value: '10:30:60' }
+        - { key: 'ClientAliveInterval', value: '15' }
+        - { key: 'ClientAliveCountMax', value: '3' }
+        - { key: 'LogLevel', value: 'VERBOSE'}
+    
+    - name: Ensure permissions on /etc/ssh/sshd_config are configured
+      file:
+       path: /etc/ssh/sshd_config
+       owner: root
+       group: root
+       mode: '0600'
+
+    - name: Restart SSH service
+      service:
+        name: ssh
+        state: restarted

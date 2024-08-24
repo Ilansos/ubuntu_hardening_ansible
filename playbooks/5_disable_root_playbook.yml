@@ -1,0 +1,18 @@
+---
+- name: Configure root password and disable root login
+  hosts: all
+  become: yes
+  tasks:
+    - name: Set root password
+      user:
+        name: root
+        password: "{{ root_password | password_hash('sha512') }}"
+
+    - name: Disable root login
+      user:
+        name: root
+        shell: /usr/sbin/nologin
+
+    - name: Lock root account
+      command: passwd -l root
+      ignore_errors: yes

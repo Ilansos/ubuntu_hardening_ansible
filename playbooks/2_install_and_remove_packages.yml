@@ -12,6 +12,7 @@
           - apparmor # AppArmor provides Mandatory Access Controls
           - auditd # auditd is the userspace component to the Linux Auditing System. It's responsible for writing audit records to the disk.
           - audispd-plugins # Component of auditd
+          - ntp # Network Time Protocol (NTP) is a protocol that allows the synchronization of system clocks (from desktops to servers). Having synchronized clocks is not only convenient but required for many distributed applications.
         state: latest
 
     - name: Ensure packages not installed or remove the ones installed
@@ -35,5 +36,6 @@
           - rsh-client # These legacy clients contain numerous security exposures and have been replaced with the more secure SSH package.
           - talk # The software presents a security risk as it uses unencrypted protocols for communication.
           - telnet # The telnet protocol is insecure and unencrypted. The use of an unencrypted transmission medium could allow an unauthorized user to steal credentials
+          - apport # Apport collects potentially sensitive data, such as core dumps, stack traces, and log files. They can contain passwords, credit card numbers, serial numbers, and other private material.
         state: absent
         purge: yes

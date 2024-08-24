@@ -1,5 +1,14 @@
 servers:
   hosts:
-    10.0.0.70: # Ubuntu test machine
-      ansible_user: test
+    10.0.0.X:
+      ansible_user: "{{ lookup('env', 'USER_HOST1') }}"
       ansible_become_pass: "{{ lookup('env', 'SUDO_PASS_HOST1') }}"
+      root_password: "{{ lookup('env', 'ROOT_PASS_HOST1') }}"
+      grub_password: "{{lookup('env', 'GRUB_PASSWORD_HOST1')}}"
+      grub_username: "{{lookup('env', 'GRUB_USERNAME_HOST1')}}"
+    10.0.0.X:
+      ansible_user: "{{ lookup('env', 'USER_HOST2') }}"
+      ansible_become_pass: "{{ lookup('env', 'SUDO_PASS_HOST2') }}"
+      root_password: "{{ lookup('env', 'ROOT_PASS_HOST2') }}"
+      grub_password: "{{lookup('env', 'GRUB_PASSWORD_HOST2')}}"
+      grub_username: "{{lookup('env', 'GRUB_USERNAME_HOST2')}}"

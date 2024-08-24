@@ -1,0 +1,27 @@
+---
+- name: Ensure sudo log file configuration
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure the sudoers directory exists
+      ansible.builtin.file:
+        path: /etc/sudoers.d
+        state: directory
+        mode: '0755'
+
+    - name: Add Defaults logfile configuration to /etc/sudoers
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        line: 'Defaults logfile="/var/log/sudo.log"'
+        create: yes
+        validate: '/usr/sbin/visudo -cf %s'
+      notify:
+        - validate sudoers file
+
+  handlers:
+    - name: validate sudoers file
+      ansible.builtin.command:
+        cmd: /usr/sbin/visudo -cf /etc/sudoers
+      register: visudo_output
+      failed_when: visudo_output.rc != 0
+      changed_when: visudo_output.rc == 0

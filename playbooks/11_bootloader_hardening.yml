@@ -3,9 +3,9 @@
   hosts: all
   become: yes
 
-  vars:
-    grub_password: "{{ lookup('env', 'GRUB_PASSWORD') }}"
-    grub_user: "{{ lookup('env', 'GRUB_USERNAME') }}"
+  # vars:
+  #   grub_password: "{{ lookup('env', 'GRUB_PASSWORD') }}"
+  #   grub_user: "{{ lookup('env', 'GRUB_USERNAME') }}"
 
   tasks:
     - name: Generate GRUB password hash
@@ -24,8 +24,8 @@
       blockinfile:
         path: /etc/grub.d/40_custom
         block: |
-          set superusers="{{ grub_user }}"
-          password_pbkdf2 {{ grub_user }} {{ actual_grub_password_hash }}
+          set superusers="{{ grub_username }}"
+          password_pbkdf2 {{ grub_username }} {{ actual_grub_password_hash }}
         create: yes
 
     - name: Ensure permissions on bootloader config are configured
@@ -44,7 +44,7 @@
       ansible.builtin.lineinfile:
         path: /etc/default/grub
         regexp: '^GRUB_CMDLINE_LINUX='
-        line: 'GRUB_CMDLINE_LINUX="apparmor=1 security=apparmor"'
+        line: 'GRUB_CMDLINE_LINUX="apparmor=1 security=apparmor audit=1"'
         backrefs: yes
 
     - name: Update GRUB configuration
